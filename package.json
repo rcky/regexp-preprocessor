@@ -1,0 +1,28 @@
+{
+    "name"                              : "regexp-preprocessor"
+    , "description"                     : "Preprocessor to create extended Javascript RegularExpressions."
+    , "version"                         : "0.0.1"
+    , "homepage"                        : "https://github.com/rcky/regexp-preprocessor"
+    , "author"                          : "Michael Rüfenacht <ruefe@rcky.ch> (http://rcky.ch/)"
+    , "licence"                         : "MIT"
+    , "repository": {
+          "url"                         : "https://github.com/rcky/regexp-preprocessor"
+        , "type"                        : "git"
+    }
+    , "bugs": {
+          "url"                           : "https://github.com/rcky/regexp-preprocessor"
+    }
+    , "dependencies": {
+          "ee-class"                    : "1.0.*"
+        , "ee-types"                    : "0.1.*"
+        , "ee-log"                      : "0.2.*"
+    }
+    , "devDependencies": {
+          "mocha"                       : "1.20.*"
+    }
+    , "optionalDependencies"            : {}
+    , "keywords"                        : []
+    , "scripts": {
+        "test"                          : "./node_modules/.bin/mocha --reporter spec --check-leaks"
+    }
+}
