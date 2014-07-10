@@ -6,7 +6,6 @@ Preprocessor to create extended Javascript RegularExpressions.
 Adds labelled capturing groups to your regexes.The implementation has the advantage that one can work with native RegExp objects at any time, since the proposed syntax does not contradict the native grammar. The preprocessor compiles your regular expression to an equivalent expression without any labels and returns an extended RegExp object (the basic interface does not change). To access the groups,the resulting match object is enhanced by a `group(id)` method, which also works for the numeric grouping.
 
 #Caveats
-  - The parser is way to much, there is a simpler solution
   - The behavior of global matches (repeated matches) is untested/unknown.
   - The preprocessing has a high overhead.
   - Replacement using a named syntax is not yet supported.
