@@ -1,5 +1,5 @@
 var   assert          = require('assert')
-    , Parser        = require('../lib/Parser')
+    , Parser        = require('../lib/Parser2')
     , ParseStream   = require('../lib/ParseStream');
 
 /**

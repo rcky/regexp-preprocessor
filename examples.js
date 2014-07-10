@@ -1,14 +1,15 @@
 var log = require('ee-log');
 
-var   Parser        = require('./lib/Parser')
-    , ParseStream   = require('./lib/ParseStream')
-    , visitors      = require('./lib/visitors');
+var   Preprocessor  = require('./lib/Preprocessor');
 
-var   p         = new Parser()
-    , regex     = /unim(:nested: \d+(:supernested: (\w))\.json)\/(?:\d+)remainder/
-    , stream    = new ParseStream(regex)
-    , parse     = p.parse(stream)
-    , visitor   = new visitors.PrettyPrintingVisitor();
+var regex     = /u(n)im(:nested:\d+(:supernested:(\w))\.json)\/(?:\d+)remainder/;
 
-visitor.visit(parse);
-log(visitor.toString());
+var proc        = new Preprocessor();
+var extended    = proc.preprocess(regex);
+var match       = extended.exec('unim10w.json/42remainder');
+
+log(extended);
+log(match);
+log(match.group('nested'));
+log(match.group(2));
+log(match[2]);
