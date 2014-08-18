@@ -13,3 +13,8 @@ log(match);
 log(match.group('nested'));
 log(match.group(2));
 log(match[2]);
+
+var simple = proc.preprocess(/(:testgroup:\d+(:lastdigit:\d))/);
+
+log(simple);
+log(simple.replace('100', 'The last digit of the number is $:lastdigit:'));

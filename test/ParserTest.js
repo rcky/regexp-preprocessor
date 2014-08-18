@@ -1,114 +1,90 @@
-var   assert          = require('assert')
-    , Parser        = require('../lib/Parser2')
-    , ParseStream   = require('../lib/ParseStream');
+var   assert            = require('assert')
+
+    , log               = require('ee-log')
+
+    , Parser            = require('../lib/Parser')
+    , TokenStream       = require('../lib/TokenStream');
 
 /**
  * These tests are not considered to be complete, but at least
  * they provide a certain insight and security.
  */
 describe('The Parser', function(){
-    var parser = new Parser();
 
-    describe('parseGroupPrefix', function(){
-        var   prefixWithGroup       = new ParseStream('can be anything that ends with a (')
-            , prefixWithoutGroups   = new ParseStream('can be anything else')
-            , resultWG              = parser.parseGroupPrefix(prefixWithGroup)
-            , resultWOG             = parser.parseGroupPrefix(prefixWithoutGroups);
+    var parser          = new Parser();
 
-        it('should be able to parse a group prefix without following group', function(){
-            assert.equal(resultWOG.content, 'can be anything else');
+    describe('parse', function(){
+
+        it('works with strings (by converting them) and token streams.', function(){
+            parser.parse('halo');
+            parser.parse(new TokenStream(['halo']));
         });
 
-        it('should be able to parse a group prefix with following group', function(){
-            assert.equal(resultWG.content, 'can be anything that ends with a ');
-        });
-        it('should stop at the group delimiter', function(){
-            assert.equal(prefixWithGroup.current, parser.T_OPEN);
-        });
-    });
-
-    describe('skipWater', function(){
-        var   water = new ParseStream("A woman is like a tea bag - you can't tell how strong she is until you put her in hot water.");
-
-        it('collects the stream content up to the specified token', function(){
-            var result = parser.skipWater(water, '-');
-            assert.equal(result.content, "A woman is like a tea bag ");
-            assert.equal(water.current, '-');
+        it('parses also expressions without groups (water)', function(){
+            var result = parser.parse('some\d+without groups');
+            assert.equal(result.length, 1);
+            assert.equal(result[0].content, 'some\d+without groups');
         });
 
-        it('stops at the first occurring token', function(){
-            var result = parser.skipWater(water, 'l', "'");
-            assert.equal(result.content, '- you can');
-            assert.equal(water.current, "'");
-        });
-    });
-
-
-    describe('parse group', function(){
-        it('should be able to parse a simple group', function(){
-            var   stream = new ParseStream('(group)')
-                , result = parser.parseGroup(stream);
-
-            assert(result.content.length == 1);
-            assert.equal('group', result.content[0].content);
+        it('also captures groups without names', function(){
+            var str = 'some (\w+) words';
+            var result = parser.parse(str);
+            assert.equal(result.length, 3);
         });
 
-        it('should be able to parse a named group', function(){
-            var   stream = new ParseStream('(:thename:group)')
-                , result = parser.parseGroup(stream);
-
-            assert(result.content.length == 1);
-            assert.equal('group', result.content[0].content);
-            assert(result.named);
-            assert.equal('thename', result.name);
-            assert(!stream.hasNext());
+        it('collects groups with names', function(){
+            var str = 'some (:adjective:\w+) words';
+            var result = parser.parse(str);
+            assert.equal(result.length, 3);
+            assert(result[1].named === true);
+            assert.equal(result[1].name, 'adjective');
         });
 
-        it('should be able to parse nested groups 1', function(){
-            var   stream = new ParseStream('(:thename:group(\w+))')
-                , result = parser.parseGroup(stream);
+        it('collects mixed groups', function(){
+            var str = 'ali baba and the (\d+) (:gangster:\w+)';
+            var result = parser.parse(str);
 
-            assert(result.content.length == 2);
-            assert.equal('w+', result.content[1].content[0].content);
-            assert(result.content[1].named === false);
+            // includes the whitespace between the groups
+            assert.equal(result.length, 4);
+            assert(!result[1].named);
+            assert(result[3].named === true);
         });
 
-        it('should be able to parse nested groups 2', function(){
-            var   stream = new ParseStream('(group(:suffix:\w+)(\d)))')
-                , result = parser.parseGroup(stream);
+        it('collects nested groups', function(){
+            var str = 'ali baba and the ((:first:\d)\d*) (:gangster:\w*(:plural:s?)';
+            var result = parser.parse(str);
 
-            var     nestedGroup1 = result.content[1]
-                ,   nestedGroup2 = result.content[3];
+            assert(result[1].content[0].named);
+            assert.equal(result[1].content[0].name, 'first');
+            assert(!result[1].content[1].named);
 
-            assert.equal(nestedGroup1.name, 'suffix');
-            assert.equal(nestedGroup1.content[0].content, '\w+');
-            assert(nestedGroup2.named === false);
-            assert.equal(nestedGroup2.content[0].content, '\d');
+            assert(result[3].named);
+            assert(!result[3].content[0].named);
+
+            assert.equal(result[3].content[1].name, 'plural');
         });
 
         it('should respect non capturing groups', function(){
-            var   stream = new ParseStream('(?:nonCap)')
-                , result = parser.parseGroup(stream);
+            var   str    = '(?:nonCap)'
+                , result = parser.parse(str);
 
-            assert(result.capture === false);
+            assert(result[0].capture === false);
         });
 
-        it('should respect not inherit capturing', function(){
-            var   stream = new ParseStream('(?:nonCap (cap))')
-                , result = parser.parseGroup(stream);
+        it('should respect but not inherit capturing', function(){
+            var   str = '(?:nonCap (cap))'
+                , result = parser.parse(str);
 
-            assert(result.capture === false);
-            assert(result.content[1].capture === true);
+            assert(result[0].capture === false);
+            assert(result[0].content[1].capture === true);
         });
     });
 
-    describe('parse', function(){
-        it('should be able to recursively parse complex groups', function(){
-            var   stream = new ParseStream(/unim(:nested: \d+(:supernested: (\w))\.json)\/(?:\d+)remainder/)
-                , result = parser.parse(stream);
+    it('should be able to recursively parse complex groups (for the records)', function(){
+        var   str       = '/unim(:nested: \d+(:supernested: (\w))\.json)\/(?:\d+)remainder/'
+            , result    = parser.parse(str);
 
-            assert(result[1].named === true);
-            assert.equal('remainder/', result[4].content);
-        });
+        assert(result[1].named === true);
+        assert.equal('remainder/', result[4].content);
     });
 });

@@ -23,6 +23,6 @@
     , "optionalDependencies"            : {}
     , "keywords"                        : []
     , "scripts": {
-        "test"                          : "./node_modules/.bin/mocha --reporter spec --check-leaks"
+        "test"                          : "./node_modules/.bin/mocha --reporter spec"
     }
 }
